@@ -1,41 +1,32 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { ScrollView, Text } from "react-native";
 import SearchBar from "../components/SearchBar";
-import yelp from "../api/yelp";
-import axios from "axios";
+import useRestaurants from "../hooks/useRestaurants";
+import RestaurantView from "../components/RestaurantView";
 
 const SearchScreen = () => {
     const [ term, setTerm ] = useState("");
-    const [ restaurants, setRestaurants ] = useState([]);
-    const [ errorMessage, setErrorMessage ] = useState("");
+    const [ searchRestaurants, restaurants, errorMessage ] = useRestaurants();
 
-    const searchRestaurants = async () => {
-        try{
-            console.log(term)
-            const response =  await yelp.get("/search", {
-                params: {
-                term: term,
-                limit: 50,
-                location: "New York City"
-                
-                }});
-            console.log(response);
-            setRestaurants(response.data.businesses)
-        }catch (error){
-            setErrorMessage("Something went wrong") 
-        }
-        
+    const getRestaurats = (price) => {
+        return restaurants.filter(restaurant => {
+                            return restaurant.price !== undefined && restaurant.price == price});
     }
-
-    return <View>
+    return (
+        <>
              <SearchBar 
                term={term} 
                onTermChange={ newTerm => setTerm(newTerm) } 
                onTermSubmitt={searchRestaurants}
              />
              { errorMessage ? <Text>{errorMessage}</Text> : null }
-             <Text>Found {restaurants.length} restaurants</Text>
-           </View>
+             <ScrollView>
+               <RestaurantView restaurants={getRestaurats("$")} title="Cost effective" />
+               <RestaurantView restaurants={getRestaurats("$$")} title="Bit pricier"  />
+               <RestaurantView restaurants={getRestaurats("$$$")} title="Big spender"  />
+             </ScrollView>
+        </>
+        )
 }
 
 
